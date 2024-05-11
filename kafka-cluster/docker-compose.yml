@@ -1,0 +1,121 @@
+version: "3"
+
+services:
+  zookeeper:
+    image: docker.io/bitnami/zookeeper:3.9
+    volumes:
+      - "zookeeper_data:/bitnami"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  kafka1:
+    image: docker.io/bitnami/kafka:2.5.0
+    ports:
+      - "9091:9092"
+    volumes:
+      - "kafka1_data:/bitnami"
+      - "./reassign-skew.json:/bitnami/reassign-skew.json"
+    environment:
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_AUTO_LEADER_REBALANCE_ENABLE=false
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
+  kafka2:
+    image: docker.io/bitnami/kafka:2.5.0
+    ports:
+      - "9092:9092"
+    volumes:
+      - "kafka2_data:/bitnami"
+    environment:
+      - KAFKA_CFG_NODE_ID=2
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_AUTO_LEADER_REBALANCE_ENABLE=false
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
+      - kafka1
+  kafka3:
+    image: docker.io/bitnami/kafka:2.5.0
+    ports:
+      - "9093:9092"
+    volumes:
+      - "kafka3_data:/bitnami"
+    environment:
+      - KAFKA_CFG_NODE_ID=3
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_AUTO_LEADER_REBALANCE_ENABLE=false
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
+      - kafka1
+      - kafka2
+  # kafka4:
+  #   image: docker.io/bitnami/kafka:2.5.0
+  #   ports:
+  #     - "9094:9092"
+  #   volumes:
+  #     - "kafka4_data:/bitnami"
+  #   environment:
+  #     - KAFKA_CFG_NODE_ID=4
+  #     - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+  #     - KAFKA_CFG_PROCESS_ROLES=controller,broker
+  #     - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+  #     - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+  #     - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+  #     - KAFKA_CFG_AUTO_LEADER_REBALANCE_ENABLE=false
+  #     - ALLOW_PLAINTEXT_LISTENER=yes
+  #   depends_on:
+  #     - zookeeper
+  #     - kafka1
+  #     - kafka2
+  #     - kafka3
+  # kafka-manager:
+  #   image: ghcr.io/eshepelyuk/dckr/cmak-3.0.0.5:latest
+  #   restart: always
+  #   command:
+  #     - "-Dcmak.zkhosts=zookeeper:2181"
+  #   ports:
+  #     - "9999:9000"
+  cmak:
+    image: hlebalbau/kafka-manager:stable
+    ports:
+      - "9000:9000"
+    restart: on-failure
+    volumes:
+      - "cmak_data:/kafka-manager"
+    depends_on:
+      - zookeeper
+      - kafka1
+      - kafka2
+      - kafka3
+    environment:
+      ZK_HOSTS: "zookeeper:2181"
+      APPLICATION_SECRET: "random-secret"
+      KM_ARGS: -Djava.net.preferIPv4Stack=true
+
+volumes:
+  zookeeper_data:
+    driver: local
+  kafka1_data:
+    driver: local
+  kafka2_data:
+    driver: local
+  kafka3_data:
+    driver: local
+  cmak_data:
+    driver: local
+  # kafka4_data:
+  #   driver: local

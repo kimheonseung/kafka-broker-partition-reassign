@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "partitions": [
+        {"topic": "topic-reassign", "partition": 0, "replicas": [1001, 1002]},
+        {"topic": "topic-reassign", "partition": 1, "replicas": [1001, 1002]},
+        {"topic": "topic-reassign", "partition": 2, "replicas": [1001, 1003]},
+        {"topic": "topic-reassign", "partition": 3, "replicas": [1001, 1003]},
+        {"topic": "topic-reassign", "partition": 4, "replicas": [1001, 1003]},
+        {"topic": "topic-reassign", "partition": 5, "replicas": [1001, 1003]},
+        {"topic": "topic-reassign", "partition": 6, "replicas": [1001, 1003]},
+        {"topic": "topic-reassign", "partition": 7, "replicas": [1001, 1003]},
+        {"topic": "topic-reassign", "partition": 8, "replicas": [1001, 1003]}
+    ]
+}
